@@ -1,0 +1,6 @@
+name = "cat"
+version = "0.1.0"
+defaultTargets = ["Cat"]
+
+[[lean_lib]]
+name = "Cat"
