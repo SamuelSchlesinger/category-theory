@@ -77,10 +77,10 @@ def Category.set : Category where
     . rfl
 
 @[simp]
-def Category.gen_product (categories : Fin n → Category) : Category where
-  obj := (i : Fin n) → (categories i).obj
-  hom x y := (i : Fin n) → (categories i).hom (x i) (y i)
-  compose f g := λ i ↦ (categories i).compose (f i) (g i)
+def Category.gen_product { α : Type u } (categories : α → Category) : Category where
+  obj := (i : α) → (categories i).obj
+  hom x y := (i : α) → (categories i).hom (x i) (y i)
+  compose f g := λ (i : α) ↦ (categories i).compose (f i) (g i)
   id := λ i ↦ (categories i).id
   associativity := by
     intros α β χ δ f g h
