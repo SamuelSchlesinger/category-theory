@@ -512,6 +512,24 @@ def Functor.hom (c : Category) : Functor (c.op.product c) Category.set where
 
 /--
 
+  The product functor of two functors.
+
+-/
+def Functor.product (f : Functor c d) (g : Functor c' d') : Functor (c.product c') (d.product d') where
+  obj x := (f.obj x.1, g.obj x.2)
+  arr x := (f.arr x.1, g.arr x.2)
+  homomorphic := by
+    intros x y z r t
+    simp
+    constructor
+    . simp [f.homomorphic]
+    . simp [g.homomorphic]
+  identity := by
+    intros x
+    simp [f.identity, g.identity]
+
+/--
+
   A monad for a functor f contains essentially the equipment for composing
   arrows a → f b with arrows b → f c such that the resulting composition
   law forms a category, the Kleisli category. As such, it must also contain
