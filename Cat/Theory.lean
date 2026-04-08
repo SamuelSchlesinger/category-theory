@@ -13,6 +13,21 @@ structure Category where
     compose f id = f ∧ compose id f = f
 
 @[simp]
+def Category.op (c : Category) : Category where
+  obj := c.obj
+  hom x y := c.hom y x
+  compose f g := c.compose g f
+  id := c.id
+  associativity := by
+    intros f g h
+    simp [c.associativity]
+  identity := by
+    intros a b f
+    constructor
+    . rw [c.identity.2]
+    . rw [c.identity.1]
+
+@[simp]
 def Category.is_inverse {c : Category} {x y : c.obj}
   (f : c.hom x y) (f'  : c.hom y x) : Prop :=
   c.compose f f' = c.id ∧ c.compose f' f = c.id
@@ -62,7 +77,7 @@ def Category.set : Category where
     . rfl
 
 @[simp]
-def Category.product (categories : Fin n → Category) : Category where
+def Category.gen_product (categories : Fin n → Category) : Category where
   obj := (i : Fin n) → (categories i).obj
   hom x y := (i : Fin n) → (categories i).hom (x i) (y i)
   compose f g := λ i ↦ (categories i).compose (f i) (g i)
@@ -79,6 +94,25 @@ def Category.product (categories : Fin n → Category) : Category where
       rw [(categories i).identity.1]
     . funext i
       rw [(categories i).identity.2]
+
+@[simp]
+def Category.product (c : Category) (d : Category) : Category where
+  obj := c.obj × d.obj
+  hom x y := c.hom x.1 y.1 × d.hom x.2 y.2
+  compose f g := (c.compose f.1 g.1, d.compose f.2 g.2)
+  id := (c.id, d.id)
+  associativity := by
+    intros α β χ δ f g h
+    simp
+    rw [d.associativity, c.associativity]
+    constructor
+    . rfl
+    . rfl
+  identity := by
+    intros x y f
+    constructor
+    . rw [c.identity.1, d.identity.1]
+    . rw [c.identity.2, d.identity.2]
 
 @[ext]
 structure Functor (c : Category) (d : Category) where
