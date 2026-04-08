@@ -27,39 +27,34 @@ def Category.op (c : Category) : Category where
     . rw [c.identity.2]
     . rw [c.identity.1]
 
-@[simp]
-def Category.is_inverse {c : Category} {x y : c.obj}
-  (f : c.hom x y) (f'  : c.hom y x) : Prop :=
-  c.compose f f' = c.id ∧ c.compose f' f = c.id
-
 structure Category.Isomorphism { c : Category } { x y : c.obj } (forward : c.hom x y) where
   backward : c.hom y x
-  is_inverse : c.is_inverse forward backward
+  is_inverse : c.compose forward backward = c.id ∧ c.compose backward forward = c.id
 
-theorem Category.inverse_uniqueness { c : Category } { x y : c.obj }
-  (f : c.hom x y) (f' : c.hom y x) (f'' : c.hom y x) :
-    Category.is_inverse f f' ∧ Category.is_inverse f f'' → f' = f'' := by
-      intros h
+theorem Category.Isomorphism.unique { c : Category } { x y : c.obj }
+  (f : c.hom x y) (iso₀ : Isomorphism f) (iso₁ : Isomorphism f) :
+    iso₀.backward = iso₁.backward := by
       calc
-        f' = c.compose c.id f' := by
+        iso₀.backward = c.compose c.id iso₀.backward := by
           simp [c.identity.2]
-        _  = c.compose (c.compose f'' f) f' := by
-          have h0 := h.2.2
+        _  = c.compose (c.compose iso₁.backward f) iso₀.backward := by
+          have h0 := iso₁.is_inverse.2
           rw [h0]
-        _  = c.compose f'' (c.compose f f') := by
+        _  = c.compose iso₁.backward (c.compose f iso₀.backward) := by
           rw [c.associativity]
-        _  = c.compose f'' c.id := by
-          have h0 := h.1.1
+        _  = c.compose iso₁.backward c.id := by
+          have h0 := iso₀.is_inverse.1
           rw [h0]
-        _  = f'' := c.identity.1
+        _  = iso₁.backward := c.identity.1
 
-theorem Category.is_inverse_sym { c : Category } { x y : c.obj }
-  (f : c.hom x y) (f' : c.hom y x) : Category.is_inverse f f' → Category.is_inverse f' f
-  := by
-    intros h
-    constructor
-    . exact h.2
-    . exact h.1
+def Category.Isomorphism.sym { c : Category } { x y : c.obj } { f : c.hom x y }
+  (iso₀ : Isomorphism f) : Isomorphism iso₀.backward := {
+    backward := f
+    is_inverse := by
+      constructor
+      . exact iso₀.is_inverse.2
+      . exact iso₀.is_inverse.1
+  }
 
 @[simp]
 def Category.set : Category where
