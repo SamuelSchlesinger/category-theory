@@ -1,7 +1,5 @@
 namespace Category
 
-variable { u v : Universe }
-
 @[ext]
 structure Category where
   obj : Type u
@@ -14,9 +12,26 @@ structure Category where
   identity :
     compose f id = f ∧ compose id f = f
 
-def inverse {c : Category} {x y : c.obj}
+def Category.inverse {c : Category} {x y : c.obj}
   (f : c.hom x y) (f'  : c.hom y x) : Prop :=
   c.compose f f' = c.id ∧ c.compose f' f = c.id
+
+theorem Category.unique_inverses { c : Category } { x y : c.obj }
+  (f : c.hom x y) (f' : c.hom y x) (f'' : c.hom y x) :
+    Category.inverse f f' ∧ Category.inverse f f'' → f' = f'' := by
+      intros h
+      calc
+        f' = c.compose c.id f' := by
+          simp [c.identity.2]
+        _  = c.compose (c.compose f'' f) f' := by
+          have h0 := h.2.2
+          rw [h0]
+        _  = c.compose f'' (c.compose f f') := by
+          rw [c.associativity]
+        _  = c.compose f'' c.id := by
+          have h0 := h.1.1
+          rw [h0]
+        _  = f'' := c.identity.1
 
 @[simp]
 def Category.set : Category where
