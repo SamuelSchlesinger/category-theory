@@ -100,6 +100,11 @@ structure Category.IsIsomorphism { c : Category } { x y : c.obj } (forward : c.h
   backward : c.hom y x
   is_inverse : c.compose forward backward = c.id ∧ c.compose backward forward = c.id
 
+/--
+
+  The composition of isomorphisms is an isomorphism.
+
+-/
 @[simp]
 def Category.IsIsomorphism.compose { c : Category } { x y z : c.obj } { f : c.hom x y } { g : c.hom y z }
   (iso₀ : IsIsomorphism f) (iso₁ : IsIsomorphism g) : IsIsomorphism (c.compose f g) := {
@@ -143,11 +148,22 @@ structure Category.Isomorphism { c : Category } (x y : c.obj) where
   forward : c.hom x y
   iso : IsIsomorphism forward
 
+/--
+
+  All isomorphisms can be flipped by swapping forward and backward.
+
+-/
 def Category.Isomorphism.sym { c : Category } { x y : c.obj } (iso : Isomorphism x y) : Isomorphism y x :=
   { forward := iso.iso.backward
     iso := iso.iso.sym
   }
 
+/--
+
+  The identity morphism is always an isomorphism, it is its own inverse by the
+  identity law.
+
+-/
 @[simp]
 def Category.Isomorphism.id { c : Category } { x : c.obj } : Isomorphism x x where
   forward := c.id
