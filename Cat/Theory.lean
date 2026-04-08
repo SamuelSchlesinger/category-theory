@@ -173,18 +173,19 @@ def Category.cat : Category where
       . simp
         rfl
 
-@[simp]
-def Functor.hom (c : Category) (a : c.obj) : Functor c Category.set where
-  obj x := c.hom a x
-  arr f := λ g ↦ c.compose g f
+def Functor.hom (c : Category) : Functor (c.op.product c) Category.set where
+  obj x := c.hom x.1 x.2
+  arr f := λ g ↦ c.compose (c.compose f.1 g) f.2
   homomorphic := by
     intros x y z r t
     simp
-    funext x
-    simp [c.associativity]
+    ext
+    simp [← c.associativity]
   identity := by
     intros x
-    simp [c.identity.1]
+    funext g
+    simp
+    simp [c.identity]
 
 structure Monad (f : Functor c c) where
   bind : c.hom a (f.obj b) → c.hom (f.obj a) (f.obj b)
@@ -301,9 +302,5 @@ def Category.functor (c : Category) (d : Category) : Category where
 structure NaturalIsomorphism (f : Functor c d) (g : Functor c d) where
   nt : NaturalTransformation f g
   iso : ∀ x, Category.Isomorphism (nt.η x)
-
-structure Functor.Representable (f : Functor c Category.set) where
-  rep : c.obj
-  iso : NaturalIsomorphism f (Functor.hom c rep)
 
 end Category 
