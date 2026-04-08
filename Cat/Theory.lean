@@ -231,14 +231,37 @@ structure NaturalTransformation (f : Functor c d) (g : Functor c d) where
     ∀ (r : c.hom x y),
       d.compose (η x) (g.arr r) = d.compose (f.arr r) (η y)
 
-@[simp]
-def NaturalTransformation.id (c : Category) :
-      NaturalTransformation (Functor.id c) (Functor.id c) where
-  η x := c.id
-  commutative := by
-    intros x y r
+def Category.functor (c : Category) (d : Category) : Category where
+  obj := Functor c d
+  hom f g := NaturalTransformation f g
+  compose f g := {
+    η x := d.compose (f.η x) (g.η x)
+    commutative := by
+      intros x y r
+      rw [ d.associativity,
+           ← f.commutative,
+           ← d.associativity,
+           g.commutative,
+           d.associativity,
+         ]
+  }
+  id := {
+    η x := d.id
+    commutative := by
+      intros x y r
+      rw [d.identity.1, d.identity.2]
+  }
+  associativity := by
+    intros α β χ δ f g h
     simp
-    rw [c.identity.1, c.identity.2]
+    funext i
+    rw [d.associativity]
+  identity := by
+    intros x y f
+    simp
+    constructor
+    . simp [d.identity]
+    . simp [d.identity]
 
 @[ext]
 structure NaturalIsomorphism (f : Functor c d) (g : Functor c d) where
