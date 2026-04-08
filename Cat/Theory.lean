@@ -12,13 +12,19 @@ structure Category where
   identity :
     compose f id = f ∧ compose id f = f
 
-def Category.inverse {c : Category} {x y : c.obj}
+@[simp]
+def Category.is_inverse {c : Category} {x y : c.obj}
   (f : c.hom x y) (f'  : c.hom y x) : Prop :=
   c.compose f f' = c.id ∧ c.compose f' f = c.id
 
-theorem Category.unique_inverses { c : Category } { x y : c.obj }
+structure Category.Isomorphism (c : Category) (x y : c.obj) where
+  forward : c.hom x y
+  backward : c.hom y x
+  is_inverse : c.is_inverse forward backward
+
+theorem Category.inverse_uniqueness { c : Category } { x y : c.obj }
   (f : c.hom x y) (f' : c.hom y x) (f'' : c.hom y x) :
-    Category.inverse f f' ∧ Category.inverse f f'' → f' = f'' := by
+    Category.is_inverse f f' ∧ Category.is_inverse f f'' → f' = f'' := by
       intros h
       calc
         f' = c.compose c.id f' := by
@@ -32,6 +38,14 @@ theorem Category.unique_inverses { c : Category } { x y : c.obj }
           have h0 := h.1.1
           rw [h0]
         _  = f'' := c.identity.1
+
+theorem Category.is_inverse_sym { c : Category } { x y : c.obj }
+  (f : c.hom x y) (f' : c.hom y x) : Category.is_inverse f f' → Category.is_inverse f' f
+  := by
+    intros h
+    constructor
+    . exact h.2
+    . exact h.1
 
 @[simp]
 def Category.set : Category where
