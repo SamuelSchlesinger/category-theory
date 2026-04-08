@@ -17,8 +17,7 @@ def Category.is_inverse {c : Category} {x y : c.obj}
   (f : c.hom x y) (f'  : c.hom y x) : Prop :=
   c.compose f f' = c.id ∧ c.compose f' f = c.id
 
-structure Category.Isomorphism (c : Category) (x y : c.obj) where
-  forward : c.hom x y
+structure Category.Isomorphism { c : Category } { x y : c.obj } (forward : c.hom x y) where
   backward : c.hom y x
   is_inverse : c.is_inverse forward backward
 
@@ -104,7 +103,7 @@ def Functor.id (c : Category) : Functor c c where
     rfl
 
 @[simp]
-def Functor.category : Category where
+def Category.cat : Category where
   obj := Category
   hom := Functor
   compose f g := {
@@ -240,5 +239,10 @@ def NaturalTransformation.id (c : Category) :
     intros x y r
     simp
     rw [c.identity.1, c.identity.2]
+
+@[ext]
+structure NaturalIsomorphism (f : Functor c d) (g : Functor c d) where
+  nt : NaturalTransformation f g
+  iso : ∀ x, Category.Isomorphism (nt.η x)
 
 end Category 
