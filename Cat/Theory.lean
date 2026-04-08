@@ -135,6 +135,29 @@ def Category.Isomorphism.sym { c : Category } { x y : c.obj } { f : c.hom x y }
       . exact iso₀.is_inverse.1
   }
 
+inductive Discrete { α : Type } : α → α → Type where
+  | deq : Discrete x x
+
+
+@[simp]
+def Category.discrete (α : Type) [DecidableEq α] : Category where
+  obj := α
+  hom x y := Discrete x y
+  compose {x y z } f g := match f, g with
+  | .deq, .deq => .deq
+  id := .deq
+  associativity := by
+    intros α β χ δ f g h
+    cases f
+    cases g
+    cases h
+    rfl
+  identity := by
+    intros x y f
+    constructor
+    . cases f <;> rfl
+    . cases f <;> rfl
+
 /--
 
   Our first real category. Here, objects are types and morphisms are functions
