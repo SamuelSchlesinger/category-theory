@@ -512,6 +512,19 @@ def Functor.hom (c : Category) : Functor (c.op.product c) Category.set where
 
 /--
 
+  A functor from c to d is also a functor from c.op to d.op.
+
+-/
+def Functor.op (f : Functor c d) : Functor c.op d.op where
+  obj x := f.obj x
+  arr := f.arr
+  homomorphic := by
+    simp [f.homomorphic]
+  identity := by
+    simp [f.identity]
+
+/--
+
   The product functor of two functors.
 
 -/
