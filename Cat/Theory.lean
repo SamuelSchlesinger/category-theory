@@ -95,17 +95,112 @@ def Category.op (c : Category) : Category where
   morphism.
 
 -/
-structure Category.Isomorphism { c : Category } { x y : c.obj } (forward : c.hom x y) where
+@[ext]
+structure Category.IsIsomorphism { c : Category } { x y : c.obj } (forward : c.hom x y) where
   backward : c.hom y x
   is_inverse : c.compose forward backward = c.id ∧ c.compose backward forward = c.id
+
+@[simp]
+def Category.IsIsomorphism.compose { c : Category } { x y z : c.obj } { f : c.hom x y } { g : c.hom y z }
+  (iso₀ : IsIsomorphism f) (iso₁ : IsIsomorphism g) : IsIsomorphism (c.compose f g) := {
+    backward := c.compose iso₁.backward iso₀.backward
+    is_inverse := by
+      constructor
+      . rw [← c.associativity f g (c.compose iso₁.backward iso₀.backward)]
+        rw [c.associativity g iso₁.backward iso₀.backward]
+        rw [iso₁.is_inverse.1]
+        simp [c.identity]
+        rw [iso₀.is_inverse.1]
+      . simp [c.associativity]
+        rw [← c.associativity iso₁.backward iso₀.backward f]
+        rw [iso₀.is_inverse.2]
+        simp [c.identity]
+        rw [iso₁.is_inverse.2]
+  }
+
+/--
+
+  IsIsomorphisms can be flipped and, because the laws are symmetric, are still
+  isomorphisms.
+
+-/
+def Category.IsIsomorphism.sym { c : Category } { x y : c.obj } { f : c.hom x y }
+  (iso₀ : IsIsomorphism f) : IsIsomorphism iso₀.backward := {
+    backward := f
+    is_inverse := by
+      constructor
+      . exact iso₀.is_inverse.2
+      . exact iso₀.is_inverse.1
+  }
+
+/--
+
+  A wrapper around an IsIsomorphism which hides the specific morphism.
+
+-/
+@[ext]
+structure Category.Isomorphism { c : Category } (x y : c.obj) where
+  forward : c.hom x y
+  iso : IsIsomorphism forward
+
+def Category.Isomorphism.sym { c : Category } { x y : c.obj } (iso : Isomorphism x y) : Isomorphism y x :=
+  { forward := iso.iso.backward
+    iso := iso.iso.sym
+  }
+
+@[simp]
+def Category.Isomorphism.id { c : Category } { x : c.obj } : Isomorphism x x where
+  forward := c.id
+  iso := {
+    backward := c.id
+    is_inverse := c.identity
+  }
+
+/--
+
+  The subcategory of all isomorphisms within the given category.
+
+-/
+@[simp]
+def Category.iso (c : Category) : Category where
+  obj := c.obj
+  hom x y := Isomorphism x y
+  compose f g := {
+    forward := c.compose f.forward g.forward
+    iso := f.iso.compose g.iso
+  }
+  id := Isomorphism.id
+  associativity := by
+    intros α β χ δ f g h
+    simp
+    constructor
+    . simp [ c.associativity ]
+    . grind [ c.associativity ]
+
+  identity := by
+    intros x y f
+    simp
+    constructor
+    . congr 1
+      . simp [ c.identity ]
+      . congr 1
+        . simp [ c.identity ]
+        . simp [ c.identity ]
+        . grind
+    . congr 1
+      . simp [ c.identity ]
+      . congr 1
+        . simp [ c.identity ] 
+        . simp [ c.identity ]
+        . grind
 
 /--
 
   The inverses witnessing isomorphisms are unique.
 
 -/
-theorem Category.Isomorphism.unique { c : Category } { x y : c.obj }
-  (f : c.hom x y) (iso₀ : Isomorphism f) (iso₁ : Isomorphism f) :
+theorem Category.IsIsomorphism.unique { c : Category } { x y : c.obj }
+  (f : c.hom x y) (iso₀ : IsIsomorphism f) (iso₁ : IsIsomorphism f) :
     iso₀.backward = iso₁.backward := by
       calc
         iso₀.backward = c.compose c.id iso₀.backward := by
@@ -122,23 +217,68 @@ theorem Category.Isomorphism.unique { c : Category } { x y : c.obj }
 
 /--
 
-  Isomorphisms can be flipped and, because the laws are symmetric, are still
-  isomorphisms.
+  A groupoid is a category for which all morphisms are isomorphisms.
 
 -/
-def Category.Isomorphism.sym { c : Category } { x y : c.obj } { f : c.hom x y }
-  (iso₀ : Isomorphism f) : Isomorphism iso₀.backward := {
-    backward := f
+structure Groupoid (c : Category) where
+  iso : ∀ (f : c.hom x y), Category.IsIsomorphism f
+
+/--
+
+  The subgroupoid contained within any category defined by all of its isomorphisms.
+
+  In the case where no non-identity morphisms are isomorphisms, this groupoid is
+  isomorphic to the discrete groupoid.
+
+-/
+@[simp]
+def Category.Isomorphism.groupoid (c : Category) : Groupoid (Category.iso c) where
+  iso f := {
+    backward := f.sym
     is_inverse := by
       constructor
-      . exact iso₀.is_inverse.2
-      . exact iso₀.is_inverse.1
+      . simp
+        constructor
+        . unfold sym
+          simp
+          rw [f.iso.is_inverse.1]
+        . congr 1
+          . unfold sym
+            simp
+            rw [f.iso.is_inverse.1]
+          . unfold sym
+            simp
+            rw [f.iso.sym.is_inverse.2]
+          . grind
+      . simp
+        constructor
+        . unfold sym
+          simp
+          rw [f.iso.is_inverse.2]
+        . unfold sym
+          simp
+          congr 1
+          . rw [f.iso.is_inverse.2]
+          . rw [f.iso.sym.is_inverse.1]
+          . grind
   }
 
+/--
+
+
+  The equality relation as a type.
+
+-/
 inductive Discrete { α : Type } : α → α → Type where
   | deq : Discrete x x
 
+/-- 
 
+  The discrete category only has identity morphisms.
+
+  It is essentially the equality relation.
+
+-/
 @[simp]
 def Category.discrete (α : Type) [DecidableEq α] : Category where
   obj := α
@@ -157,6 +297,25 @@ def Category.discrete (α : Type) [DecidableEq α] : Category where
     constructor
     . cases f <;> rfl
     . cases f <;> rfl
+
+/--
+
+  The discrete category is also a groupoid, as it only has identity
+  morphisms.
+
+-/
+@[simp]
+def Groupoid.discrete (α : Type) [DecidableEq α] : Groupoid (Category.discrete α) where
+  iso f := {
+    backward := by
+      cases f
+      exact .deq
+    is_inverse := by
+      cases f
+      constructor
+      . simp
+      . simp
+  }
 
 /--
 
@@ -524,6 +683,6 @@ def Category.functor (c : Category) (d : Category) : Category where
 @[ext]
 structure NaturalIsomorphism (f : Functor c d) (g : Functor c d) where
   nt : NaturalTransformation f g
-  iso : ∀ x, Category.Isomorphism (nt.η x)
+  iso : ∀ x, Category.IsIsomorphism (nt.η x)
 
 end Cat.Theory 
