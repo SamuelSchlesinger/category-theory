@@ -14,6 +14,10 @@ structure Category where
   identity :
     compose f id = f ∧ compose id f = f
 
+def inverse {c : Category} {x y : c.obj}
+  (f : c.hom x y) (f'  : c.hom y x) : Prop :=
+  c.compose f f' = c.id ∧ c.compose f' f = c.id
+
 @[simp]
 def Category.set : Category where
   obj := Type
@@ -130,6 +134,17 @@ structure Monad (f : Functor c c) where
     ∀ (s : c.hom α (f.obj β)) (t : c.hom β (f.obj χ)),
       c.compose (bind s) (bind t) = bind (c.compose s (bind t))
 
+def Monad.id : Monad (Functor.id c) where
+  bind := λ x ↦ x
+  pure := c.id
+  left_unit := rfl
+  right_unit := by
+    intros
+    rw [c.identity.2]
+  associativity := by
+    intros α β χ s t
+    rfl
+
 @[simp]
 def Category.kleisli (m : Functor c c) (monad : Monad m) : Category where
   obj := c.obj
@@ -154,6 +169,17 @@ structure Comonad (f : Functor c c) where
   associativity :
     ∀ (s : c.hom (f.obj α) β) (t : c.hom (f.obj β) χ),
       c.compose (extend s) (extend t) = extend (c.compose (extend s) t)
+
+def Comonad.id : Comonad (Functor.id c) where
+  extend := λ x ↦ x
+  extract := c.id
+  left_unit := rfl
+  right_unit := by
+    intros
+    rw [c.identity.1]
+  associativity := by
+    intros α β χ s t
+    rfl
 
 @[simp]
 def Category.cokleisli (w : Functor c c) (comonad : Comonad w) : Category where
