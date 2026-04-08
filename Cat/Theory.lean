@@ -302,4 +302,8 @@ structure NaturalIsomorphism (f : Functor c d) (g : Functor c d) where
   nt : NaturalTransformation f g
   iso : ∀ x, Category.Isomorphism (nt.η x)
 
+structure Functor.Representable (f : Functor c Category.set) where
+  rep : c.obj
+  iso : NaturalIsomorphism f (Functor.hom c rep)
+
 end Category 
