@@ -1,6 +1,7 @@
 name = "cat"
 version = "0.1.0"
 defaultTargets = ["Cat"]
+reservoir = false
 
 [[lean_lib]]
 name = "Cat"
