@@ -1,4 +1,4 @@
-namespace Category
+namespace Cat.Theory
 
 @[ext]
 structure Category where
@@ -298,4 +298,4 @@ structure NaturalIsomorphism (f : Functor c d) (g : Functor c d) where
   nt : NaturalTransformation f g
   iso : ∀ x, Category.Isomorphism (nt.η x)
 
-end Category 
+end Cat.Theory 
