@@ -124,12 +124,13 @@ structure Monad (f : Functor c c) where
   bind : c.hom a (f.obj b) → c.hom (f.obj a) (f.obj b)
   pure : c.hom a (f.obj a)
   left_unit : bind pure = c.id (x := f.obj x)
-  right_unit : ∀ (f : c.hom a (f.obj b)),
-    c.compose pure (bind f) = f
+  right_unit : ∀ (h : c.hom a (f.obj b)),
+    c.compose pure (bind h) = h
   associativity :
     ∀ (s : c.hom α (f.obj β)) (t : c.hom β (f.obj χ)),
       c.compose (bind s) (bind t) = bind (c.compose s (bind t))
 
+@[simp]
 def Category.kleisli (m : Functor c c) (monad : Monad m) : Category where
   obj := c.obj
   hom x y := c.hom x (m.obj y)
@@ -143,6 +144,31 @@ def Category.kleisli (m : Functor c c) (monad : Monad m) : Category where
     constructor
     . rw [monad.left_unit, c.identity.1]
     . rw [monad.right_unit]
+
+structure Comonad (f : Functor c c) where
+  extend : c.hom (f.obj a) b → c.hom (f.obj a) (f.obj b)
+  extract : c.hom (f.obj a) a
+  left_unit : extend extract = c.id (x := f.obj x)
+  right_unit : ∀ (h : c.hom (f.obj a) b),
+    c.compose (extend h) extract = h
+  associativity :
+    ∀ (s : c.hom (f.obj α) β) (t : c.hom (f.obj β) χ),
+      c.compose (extend s) (extend t) = extend (c.compose (extend s) t)
+
+@[simp]
+def Category.cokleisli (w : Functor c c) (comonad : Comonad w) : Category where
+  obj := c.obj
+  hom x y := c.hom (w.obj x) y 
+  compose f g := c.compose (comonad.extend f) g
+  id := comonad.extract
+  associativity := by
+    intros α β χ δ f g h
+    rw [c.associativity, comonad.associativity]
+  identity := by
+    intros x y f
+    constructor
+    . rw [comonad.right_unit]
+    . rw [comonad.left_unit, c.identity.2]
 
 @[ext]
 structure NaturalTransformation (f : Functor c d) (g : Functor c d) where
