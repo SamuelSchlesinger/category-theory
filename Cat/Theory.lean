@@ -285,7 +285,7 @@ def Category.Isomorphism.groupoid (c : Category) : Groupoid (Category.iso c) whe
   The equality relation as a type.
 
 -/
-inductive Discrete { α : Type } : α → α → Type where
+inductive Discrete { α : Type u } : α → α → Type where
   | deq : Discrete x x
 
 /-- 
@@ -296,7 +296,7 @@ inductive Discrete { α : Type } : α → α → Type where
 
 -/
 @[simp]
-def Category.discrete (α : Type) [DecidableEq α] : Category where
+def Category.discrete (α : Type u) : Category where
   obj := α
   hom x y := Discrete x y
   compose {x y z } f g := match f, g with
@@ -321,7 +321,7 @@ def Category.discrete (α : Type) [DecidableEq α] : Category where
 
 -/
 @[simp]
-def Groupoid.discrete (α : Type) [DecidableEq α] : Groupoid (Category.discrete α) where
+def Groupoid.discrete (α : Type u) : Groupoid (Category.discrete α) where
   iso f := {
     backward := by
       cases f
@@ -340,8 +340,8 @@ def Groupoid.discrete (α : Type) [DecidableEq α] : Groupoid (Category.discrete
 
 -/
 @[simp]
-def Category.set : Category where
-  obj := Type
+def Category.set.{u} : Category where
+  obj := Type u
   hom x y := x → y
   compose f g := g ∘ f
   id x := x
